@@ -6,6 +6,7 @@ machine:
     before:
       - apt-get update
     after:
+      - apt-get clean
       - echo "Done"
     software:
       apache: 
@@ -88,6 +89,38 @@ machine:
       sqlite: 
         installation:
         - apt-get install -y sqlite3
+        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
+        cve: 
+        - CVE-2020
+        - CVE-1233
+  centos:
+    box: "centos/7"
+    provider: "libvirt"
+    driver: "kvm"
+    before:
+      - yum update
+    after:
+      - yum clean all
+      - echo "Done"
+    software:
+      apache: 
+        installation:
+        - yum install -y httpd 
+        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
+        cve: 
+        - CVE-2020
+        - CVE-1233
+      chrome: 
+        installation:
+        - wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+        - yum install ./google-chrome-stable_current_*.rpm
+        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
+        cve: 
+        - CVE-2020
+        - CVE-1233
+      firefox: 
+        installation:
+        - yum install -y firefox
         cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
         cve: 
         - CVE-2020

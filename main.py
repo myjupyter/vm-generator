@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import sys
+import os
+import stat
 import os.path
 import argparse
 
@@ -46,7 +48,6 @@ class BodyMember(Nesting):
     def __str__(self):
         return self.nest * 4 * ' ' + '{:s} = {:s}\n'.format(self.name, self.value)
 
-
 class Branch(Nesting):
     def __init__(self, sline, eline='end'):
         self.sline = sline
@@ -87,7 +88,7 @@ class Args:
         return self.file_name
     
     @property
-    def vagrantfile(self):
+    def machinename(self):
         return self.generate_vagrant_file
 
     @property
@@ -96,18 +97,14 @@ class Args:
 
 class ArgsParser:
     def __init__(self):
-        self.parser = argparse.ArgumentParser(description = 'Make scanner great again')
-
+        self.parser = argparse.ArgumentParser(
+            description = 'This utility intended to convert .yaml files \
+                           into Vagrantfile with build box script'
+        )
         self.parser.add_argument(
             '-g', '--generate-vagrant-file',
             type=str,
-            help='generates Vagrantfiles'
-        )
-
-        self.parser.add_argument(
-            '-b', '--build-box',
-            type=str,
-            help='builds box from generated Vagrantfile'
+            help='generates Vagrantfiles for specified machine'
         )
         self.parser.add_argument(
             '-f', '--file-name',
@@ -160,11 +157,17 @@ class Machine:
                 if details.get('installation') is None:
                     raise AttributeError('SHIT')
                 self.install_cmd += [Command(cmd) for cmd in details['installation']]
+                if details.get('cpe') is not None:
+                    self.install_cmd += [Command('echo "{:s}" >> cpe.txt'.format(details['cpe']))]
+                if details.get('cve') is not None:
+                    self.install_cmd += [Command('echo "{:s}" >> cve.txt'.format(cve)) for cve in details['cve']]
     
 
     def gen_vagrantfile(self):
         branch = Branch('Vagrant.configure("2") do |config|')
         branch.append(BodyMember('config.vm.box', self.box))
+        
+        branch.append(Branch('config.vm.define "{:s}"'.format(self.name),''))
         
         provider_branch = Branch('config.vm.provider "'+self.provider+'" do |vb|')
         provider_branch.append(BodyMember('vb.driver', '"'+self.driver+'"')) 
@@ -180,16 +183,30 @@ class Machine:
         return branch
     
 
-def write_vagrantfile(machines, machine):
-    m = machines.get(machine)
-    if m is None:
-        print('Not such machine in config file like '+machine)
-        return False
-    vf = m.gen_vagrantfile()
-    mkdirp(machine)
-    with open(os.path.join(machine, 'Vagrantfile'), 'w') as file:
+def write_vagrantfile(machine):
+    if machine is None or not isinstance(machine, Machine):
+        raise AttributeError('There is no such machine in config file')
+    vf = machine.gen_vagrantfile()
+
+    mkdirp(machine.name)
+    with open(os.path.join(machine.name, 'Vagrantfile'), 'w') as file:
         file.write(vf.__str__())
-    return True
+
+
+def write_build_script(machine):
+    if machine is None or not isinstance(machine, Machine):
+        raise AttributeError("Bad Machine instance")
+   
+    path = os.path.join(machine.name, 'build.sh')
+    with open(path, 'w') as file:
+        file.writelines([
+            'vagrant up --provider={:s}\n'.format(machine.provider),
+            'vagrant package --output {:s}.box'.format(machine.name)
+        ]) 
+    
+    st = os.stat(path)
+    os.chmod(path, st.st_mode | stat.S_IEXEC)
+
 
 def main():
     parser = ArgsParser()
@@ -198,12 +215,15 @@ def main():
     configs = Configs(args.filename)
     machines = {name: Machine(name, config) for name, config in configs.items()} 
 
-    if args.vagrantfile is not None:
-        if args.vagrantfile == 'all':
-            for name in machines.keys():
-                write_vagrantfile(machines, name)
+    if args.machinename is not None:
+        if args.machinename == 'all':
+            for machine in machines.values():
+                write_vagrantfile(machine)
+                write_vagrantfile(machine)
         else:
-            write_vagrantfile(machines, args.vagrantfile)
+            machine = machines.get(args.machinename)
+            write_vagrantfile(machine)
+            write_build_script(machine)
 
 if __name__ == '__main__':
     main()
