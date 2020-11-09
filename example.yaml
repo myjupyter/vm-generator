@@ -5,94 +5,31 @@ machine:
     driver: "kvm"
     before:
       - apt-get update
+        #     - apt-get-repository add ppa:jonathonf/firefox-esr-60
     after:
       - apt-get clean
       - echo "Done"
     software:
-      apache: 
-        installation:
-        - apt-get install -y apache2 
-        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
-        cve: 
-        - CVE-2020
-        - CVE-1233
-      chrome: 
-        installation:
-        - apt-get install -y chrome
-        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
-        cve: 
-        - CVE-2020
-        - CVE-1233
       firefox: 
         installation:
         - apt-get install -y firefox
-        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
+        - apt-get install -y firefox-esr
+        cpe: "cpe:2.3:a:mozilla:firefox:50.0:*:*:*:*:*:*:*"
         cve: 
-        - CVE-2020
-        - CVE-1233
-      jdk: 
-        installation:
-        - apt-get install -y default-jdk
-        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
-        cve: 
-          - CVE-2020
-          - CVE-1233
-      mysql: 
-        installation:
-        - apt-get install -y mysql
-        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
-        cve: 
-        - CVE-2020
-        - CVE-1233
+        - CVE-2020-15682 
+        - CVE-2020-15684
+          #mysql: 
+          #  installation:
+          #  - apt-get install -y mysql-server 
+          #  cpe: "cpe:2.3:a:oracle:mysql:5.6.0:*:*:*:*:*:*:*"
+          #  cve: 
+          #  - CVE-2020-14893
       virtualbox: 
         installation:
         - apt-get install -y virtualbox 
-        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
+        cpe: "cpe:2.3:a:oracle:virtualbox:4.3.8:*:*:*:*:*:*:*"
         cve: 
-        - CVE-2020
-        - CVE-1233
-      jenkins: 
-        installation:
-        - apt-get install -y jenkins 
-        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
-        cve: 
-        - CVE-2020
-        - CVE-1233
-      ssl: 
-        installation:
-        - apt-get install -y libssl-dev 
-        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
-        cve: 
-        - CVE-2020
-        - CVE-1233
-      postgres: 
-        installation:
-        - apt-get install -y postgresql 
-        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
-        cve: 
-        - CVE-2020
-        - CVE-1233
-      django: 
-        installation:
-        - apt-get install -y python3-django 
-        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
-        cve: 
-        - CVE-2020
-        - CVE-1233
-      rails:
-        installation:
-        - apt-get install -y rails
-        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
-        cve: 
-        - CVE-2020
-        - CVE-1233
-      sqlite: 
-        installation:
-        - apt-get install -y sqlite3
-        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
-        cve: 
-        - CVE-2020
-        - CVE-1233
+        - CVE-2020-14892
   centos:
     box: "centos/7"
     provider: "libvirt"
@@ -125,3 +62,36 @@ machine:
         cve: 
         - CVE-2020
         - CVE-1233
+  fedora:
+    box: "generic/fedora28"
+    provider: "libvirt"
+    driver: "kvm"
+    before:
+      - dnf update
+    after:
+      - dnf clean all
+      - echo "Done"
+    software:
+      apache: 
+        installation:
+        - dnf install -y httpd 
+        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
+        cve: 
+        - CVE-2020
+        - CVE-1233
+      chrome: 
+        installation:
+        - wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+        - dnf install ./google-chrome-stable_current_*.rpm
+        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
+        cve: 
+        - CVE-2020
+        - CVE-1233
+      firefox: 
+        installation:
+        - dnf install -y firefox
+        cpe: "cpe:2.3:a:openbsd:openssh:1.2.1:*:*:*:*:*:*:*"
+        cve: 
+        - CVE-2020
+        - CVE-1233
+ 
